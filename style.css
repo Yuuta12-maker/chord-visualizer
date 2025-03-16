@@ -49,6 +49,8 @@ textarea#input-text {
     resize: vertical;
     font-family: monospace;
     font-size: 14px;
+    background-color: #2d2d2d;
+    color: #e0e0e0;
 }
 
 button#process-button {
@@ -73,6 +75,23 @@ button#process-button:hover {
     overflow: hidden;
 }
 
+/* チェックボックススタイル */
+input[type="checkbox"] {
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+label {
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+/* コード表示のための追加スタイル */
+.chord-line span {
+    display: inline-block;
+    margin: 2px;
+}
+
 /* レスポンシブ対応 */
 @media (max-width: 600px) {
     .container {
@@ -88,8 +107,16 @@ button#process-button:hover {
     }
 }
 
-/* コード表示のための追加スタイル */
-.chord-line span {
-    display: inline-block;
-    margin: 2px;
+/* 出力エリアのスタイル調整 */
+#output-area div {
+    line-height: 1.5;
+}
+
+/* コード表示のハイライト */
+#output-area span {
+    transition: transform 0.1s;
+}
+
+#output-area span:hover {
+    transform: scale(1.05);
 }
