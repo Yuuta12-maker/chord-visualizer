@@ -134,7 +134,7 @@ function colorizeChord(chord) {
             fontSize = "10px";
         }
 
-        return `<span style="display:inline-block; background-color:${bgColor}; color:${textColor}; padding:0 4px; margin:2px; font-size:${fontSize}; line-height:18px; border-radius:2px; text-shadow:${textShadow};">${root}<span style="font-weight:normal;">${mainRemainder}/${bassNote}</span></span>`;
+        return `<span style="display:inline-block; background-color:${bgColor}; color:${textColor}; padding:0 4px; margin:2px; font-size:${fontSize}; line-height:18px; border-radius:6px; text-shadow:${textShadow}; font-weight:500;">${root}<span style="font-weight:normal;">${mainRemainder}/${bassNote}</span></span>`;
     }
 
     // ルート音から適切な色を選択
@@ -166,7 +166,7 @@ function colorizeChord(chord) {
         fontSize = "10px";
     }
 
-    return `<span style="display:inline-block; background-color:${bgColor}; color:${textColor}; padding:0 4px; margin:2px; font-size:${fontSize}; line-height:18px; border-radius:2px; text-shadow:${textShadow};">${root}<span style="font-weight:normal;">${remainder}</span></span>`;
+    return `<span style="display:inline-block; background-color:${bgColor}; color:${textColor}; padding:0 4px; margin:2px; font-size:${fontSize}; line-height:18px; border-radius:6px; text-shadow:${textShadow}; font-weight:500;">${root}<span style="font-weight:normal;">${remainder}</span></span>`;
 }
 
 // コードパターンを認識するための正規表現
@@ -209,14 +209,14 @@ function highlightChordsInLine(line) {
 // コードと歌詞の行を交互に処理する従来の方法
 function processChordLyricLines(inputText) {
     const lines = inputText.trim().split('\n');
-    let htmlOutput = '<div style="font-family:monospace; font-size:13px; white-space:pre; background-color:#1e1e1e; padding:10px; border-radius:5px; color:white;">';
+    let htmlOutput = '<div style="font-family:monospace; font-size:13px; white-space:pre; background-color:#0f172a; padding:1.5rem; border-radius:8px; color:white;">';
 
     let i = 0;
     while (i < lines.length) {
         const chordLine = lines[i].trim();
 
         // コード行を処理
-        let chordHtml = '<div style="margin:2px 0;">';
+        let chordHtml = '<div style="margin:6px 0;">';
         const chordParts = chordLine.split(/\s+/);
 
         for (const part of chordParts) {
@@ -229,7 +229,7 @@ function processChordLyricLines(inputText) {
         // 次の行が歌詞行かチェック
         if (i + 1 < lines.length) {
             const lyricLine = lines[i + 1].trim();
-            htmlOutput += `<div style="margin:0 0 6px 0; padding-left:2px;">${lyricLine}</div>`;
+            htmlOutput += `<div style="margin:0 0 12px 0; padding-left:4px;">${lyricLine}</div>`;
             i += 2;
         } else {
             i += 1;
@@ -243,12 +243,12 @@ function processChordLyricLines(inputText) {
 // 各行内のコードを自動検出して処理する新しい方法
 function processAutoDetectMode(inputText) {
     const lines = inputText.trim().split('\n');
-    let htmlOutput = '<div style="font-family:monospace; font-size:13px; white-space:pre; background-color:#1e1e1e; padding:10px; border-radius:5px; color:white;">';
+    let htmlOutput = '<div style="font-family:monospace; font-size:13px; white-space:pre; background-color:#0f172a; padding:1.5rem; border-radius:8px; color:white;">';
 
     for (const line of lines) {
         // 行内のコードを検出して色付け
         const processedLine = highlightChordsInLine(line);
-        htmlOutput += `<div style="margin:2px 0;">${processedLine}</div>`;
+        htmlOutput += `<div style="margin:6px 0;">${processedLine}</div>`;
     }
 
     htmlOutput += '</div>';
@@ -260,28 +260,40 @@ document.addEventListener('DOMContentLoaded', function() {
     const processButton = document.getElementById('process-button');
     const inputText = document.getElementById('input-text');
     const outputArea = document.getElementById('output-area');
-    const autoDetectCheckbox = document.createElement('input');
+    const autoDetectCheckbox = document.getElementById('auto-detect');
     
-    // 自動検出モードのチェックボックスを追加
-    autoDetectCheckbox.type = 'checkbox';
-    autoDetectCheckbox.id = 'auto-detect';
-    autoDetectCheckbox.checked = true; // デフォルトでオン
+    // UI要素に効果を追加
+    function addUIEffects() {
+        // テキストエリアのフォーカス効果
+        inputText.addEventListener('focus', function() {
+            this.parentElement.classList.add('focused');
+        });
+        
+        inputText.addEventListener('blur', function() {
+            this.parentElement.classList.remove('focused');
+        });
+        
+        // ボタンのクリック効果
+        processButton.addEventListener('mousedown', function() {
+            this.style.transform = 'translateY(1px)';
+        });
+        
+        processButton.addEventListener('mouseup', function() {
+            this.style.transform = '';
+        });
+        
+        // ローディング効果
+        processButton.addEventListener('click', function() {
+            const originalText = this.textContent;
+            this.innerHTML = '<span class="loading">処理中...</span>';
+            
+            setTimeout(() => {
+                this.innerHTML = originalText;
+            }, 500);
+        });
+    }
     
-    const autoDetectLabel = document.createElement('label');
-    autoDetectLabel.htmlFor = 'auto-detect';
-    autoDetectLabel.textContent = 'コード自動検出モード（行内のコードを自動検出）';
-    autoDetectLabel.style.color = '#333';
-    autoDetectLabel.style.marginLeft = '10px';
-    
-    const controlArea = document.createElement('div');
-    controlArea.style.marginTop = '10px';
-    controlArea.style.marginBottom = '10px';
-    controlArea.appendChild(autoDetectCheckbox);
-    controlArea.appendChild(autoDetectLabel);
-    
-    // 入力エリアの後にコントロールエリアを挿入
-    const inputArea = document.querySelector('.input-area');
-    inputArea.appendChild(controlArea);
+    addUIEffects();
 
     processButton.addEventListener('click', function() {
         const input = inputText.value;
@@ -295,6 +307,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         outputArea.innerHTML = html;
+        
+        // スクロールして結果を表示
+        setTimeout(() => {
+            outputArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
     });
 
     // サンプルテキストをロード
