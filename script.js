@@ -332,21 +332,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // サンプルテキストをロード
-    const sampleText = `G / Am7 / G / Am7onG
-G A F#m7 Bm7 Em7
-小さい頃は 神 さまがいて
-C Am7 D
-不思議に夢をか なえてくれた
-G A F#m7 Bm7 Em7
-やさしい気持で 目覚 めた 朝は
-C Am7 D Bm7 B7
-おとなになっても 奇跡はおこる よ
-Em C Em C
-カーテンを開いて 静かな木洩れ陽の
-Am7 Bm7 Em
-やさしさに包まれたなら きっと
-C Am7 Am7onD
-目につうる全てのことは メッセージ`;
+    const sampleText = `;
 
     // テキストエリアにサンプルをセット
     inputText.value = sampleText;
