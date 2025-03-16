@@ -3,31 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>共感覚コード譜作成ツール - マインドエンジニアリング・コーチング</title>
+    <title>共感覚コード譜作成ツール</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>共感覚コード譜作成ツール</h1>
-            <p>森山雄太 - マインドエンジニアリング・コーチング（MEC）</p>
+            <p>ミュージシャンのための音楽コード視覚化アプリ</p>
         </div>
         
         <div class="usage-info">
             <h3>使い方</h3>
-            <p>テキストエリアにコードと歌詞を入力して「表示する」ボタンをクリックしてください。</p>
-            <p><strong>コード自動検出モード</strong>では、テキスト内のコード（C、G、Am、F#m7など）を自動的に検出して色付けします。</p>
-            <p>例：「<code>G A F#m7 Bm7 Em7 小さい頃は 神 さまがいて</code>」のように歌詞とコードが混在していても検出可能です。</p>
+            <p>テキストエリアにコードと歌詞を入力して、「変換」ボタンをクリックしてください。</p>
+            <p><strong>コード自動検出モード</strong>では、テキスト内のコード（C、G、Am7、F#m7など）を自動的に検出して色付けします。</p>
+            <p>例：「<code>G A F#m7 Bm7 Em7 小さい頃は 神 さまがいて</code>」のように歌詞とコードが混在していても検出できます。</p>
         </div>
         
         <div class="input-area">
             <textarea id="input-text" placeholder="コード譜と歌詞を入力してください
 例：
-G A F#m7 Bm7 Em7
+G / Am 7 / G / Am 7onG
+G A F#m7 Bm 7 Em 7
 小さい頃は 神 さまがいて
-C Am7 D
+C Am 7 D
 不思議に夢をかなえてくれた"></textarea>
-            <button id="process-button">表示する</button>
+            
+            <div class="control-area">
+                <input type="checkbox" id="auto-detect" checked>
+                <label for="auto-detect">コード自動検出モード（行内のコードを自動検出）</label>
+            </div>
+            
+            <button id="process-button">変換</button>
         </div>
         
         <div id="output-area"></div>
