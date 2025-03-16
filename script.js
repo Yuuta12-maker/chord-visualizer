@@ -129,12 +129,12 @@ function colorizeChord(chord) {
             "0px 0px 2px rgba(0,0,0,0.5)" : 
             "0px 0px 2px rgba(255,255,255,0.5)";
 
-        let fontSize = "12px";
+        let fontSize = "14px";
         if (chord.length > 6) {
-            fontSize = "10px";
+            fontSize = "12px";
         }
 
-        return `<span style="display:inline-block; background-color:${bgColor}; color:${textColor}; padding:0 4px; margin:2px; font-size:${fontSize}; line-height:18px; border-radius:6px; text-shadow:${textShadow}; font-weight:500;">${root}<span style="font-weight:normal;">${mainRemainder}/${bassNote}</span></span>`;
+        return `<span style="display:inline-block; background-color:${bgColor}; color:${textColor}; padding:4px 8px; margin:3px; font-size:${fontSize}; line-height:1.3; border-radius:6px; text-shadow:${textShadow}; font-weight:500; box-shadow:0 2px 4px rgba(0,0,0,0.2);">${root}<span style="font-weight:normal;">${mainRemainder}/${bassNote}</span></span>`;
     }
 
     // ルート音から適切な色を選択
@@ -161,12 +161,12 @@ function colorizeChord(chord) {
         "0px 0px 2px rgba(255,255,255,0.5)";
 
     // コードの長さに基づいてフォントサイズを調整
-    let fontSize = "12px";
+    let fontSize = "14px";
     if (chord.length > 6) {
-        fontSize = "10px";
+        fontSize = "12px";
     }
 
-    return `<span style="display:inline-block; background-color:${bgColor}; color:${textColor}; padding:0 4px; margin:2px; font-size:${fontSize}; line-height:18px; border-radius:6px; text-shadow:${textShadow}; font-weight:500;">${root}<span style="font-weight:normal;">${remainder}</span></span>`;
+    return `<span style="display:inline-block; background-color:${bgColor}; color:${textColor}; padding:4px 8px; margin:3px; font-size:${fontSize}; line-height:1.3; border-radius:6px; text-shadow:${textShadow}; font-weight:500; box-shadow:0 2px 4px rgba(0,0,0,0.2);">${root}<span style="font-weight:normal;">${remainder}</span></span>`;
 }
 
 // コードパターンを認識するための正規表現
@@ -209,14 +209,14 @@ function highlightChordsInLine(line) {
 // コードと歌詞の行を交互に処理する従来の方法
 function processChordLyricLines(inputText) {
     const lines = inputText.trim().split('\n');
-    let htmlOutput = '<div style="font-family:monospace; font-size:13px; white-space:pre; background-color:#0f172a; padding:1.5rem; border-radius:8px; color:white;">';
+    let htmlOutput = '<div style="font-family:monospace; font-size:14px; white-space:pre; background-color:#0f172a; padding:1.5rem; border-radius:8px; color:white; line-height:1.6;">';
 
     let i = 0;
     while (i < lines.length) {
         const chordLine = lines[i].trim();
 
         // コード行を処理
-        let chordHtml = '<div style="margin:6px 0;">';
+        let chordHtml = '<div style="margin:8px 0;">';
         const chordParts = chordLine.split(/\s+/);
 
         for (const part of chordParts) {
@@ -229,7 +229,7 @@ function processChordLyricLines(inputText) {
         // 次の行が歌詞行かチェック
         if (i + 1 < lines.length) {
             const lyricLine = lines[i + 1].trim();
-            htmlOutput += `<div style="margin:0 0 12px 0; padding-left:4px;">${lyricLine}</div>`;
+            htmlOutput += `<div style="margin:0 0 16px 0; padding-left:4px; font-size:15px; color:#e2e8f0;">${lyricLine}</div>`;
             i += 2;
         } else {
             i += 1;
@@ -243,12 +243,12 @@ function processChordLyricLines(inputText) {
 // 各行内のコードを自動検出して処理する新しい方法
 function processAutoDetectMode(inputText) {
     const lines = inputText.trim().split('\n');
-    let htmlOutput = '<div style="font-family:monospace; font-size:13px; white-space:pre; background-color:#0f172a; padding:1.5rem; border-radius:8px; color:white;">';
+    let htmlOutput = '<div style="font-family:monospace; font-size:14px; white-space:pre; background-color:#0f172a; padding:1.5rem; border-radius:8px; color:white; line-height:1.6;">';
 
     for (const line of lines) {
         // 行内のコードを検出して色付け
         const processedLine = highlightChordsInLine(line);
-        htmlOutput += `<div style="margin:6px 0;">${processedLine}</div>`;
+        htmlOutput += `<div style="margin:8px 0;">${processedLine}</div>`;
     }
 
     htmlOutput += '</div>';
@@ -285,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // ローディング効果
         processButton.addEventListener('click', function() {
             const originalText = this.textContent;
-            this.innerHTML = '<span class="loading">処理中...</span>';
+            this.innerHTML = '<span class="loading">処理中</span>';
             
             setTimeout(() => {
                 this.innerHTML = originalText;
@@ -306,7 +306,13 @@ document.addEventListener('DOMContentLoaded', function() {
             html = processChordLyricLines(input);
         }
         
+        // 結果にハイライト効果を追加
         outputArea.innerHTML = html;
+        outputArea.classList.add('new-result');
+        
+        setTimeout(() => {
+            outputArea.classList.remove('new-result');
+        }, 1500);
         
         // スクロールして結果を表示
         setTimeout(() => {
