@@ -18,7 +18,7 @@ const chordColors = {
     'Bb': '#c0c0c0',  // A#と同じ
     'B': '#8b4513',   // 茶色
     'Con': '#FFA500', // オンコードの特別処理
-    'Em': '#adff2f',  // Em（Eのバリエーション）
+    'Em': '#adff2f',  // Em（Eのバリエーション） 
     'Am': '#9932cc',  // Am（Aのバリエーション）
     'Dm': '#FFFF00',  // Dm（Dのバリエーション）
     'Bm': '#8b4513',  // Bm（Bのバリエーション）
@@ -37,30 +37,52 @@ function getBrightness(hexColor) {
 
 // コード表記を解析して、ルート音とそれ以外の部分に分ける
 function parseChord(chord) {
-    // ルート音を抽出するための正規表現
-    // 基本的なコードルート（C, C#, Dbなど）
-    const basicRootPattern = /^([A-G][#b]?)(m|M|maj|min|dim|aug|sus|add)?/;
-    // 特殊なケース（Em, Am, Dmなど）
-    const specialPattern = /^(Em|Am|Dm|Bm)([0-9]|maj|min|dim|aug|sus|add)?/;
-    
-    let match = chord.match(specialPattern);
+    // 最もよくあるパターンを先に処理
+    // Am7, Em7, Dm7などのマイナーセブンスコード
+    const minorSeventhPattern = /^([A-G][#b]?m7)/;
+    let match = chord.match(minorSeventhPattern);
+    if (match) {
+        const fullChord = match[1];
+        const root = fullChord.substring(0, 1) + (fullChord.charAt(1) === '#' || fullChord.charAt(1) === 'b' ? fullChord.charAt(1) : '');
+        const remainder = fullChord.substring(root.length);
+        const restOfChord = chord.substring(fullChord.length);
+        return [root, remainder + restOfChord];
+    }
+
+    // Am7onD のようなオンコード
+    const onChordPattern = /^([A-G][#b]?m?7?)on([A-G][#b]?)/;
+    match = chord.match(onChordPattern);
+    if (match) {
+        const fullChord = match[0];
+        const mainChord = match[1];
+        const bassNote = match[2];
+        const root = mainChord.substring(0, 1) + (mainChord.charAt(1) === '#' || mainChord.charAt(1) === 'b' ? mainChord.charAt(1) : '');
+        const remainder = 'on' + bassNote;
+        return [root, mainChord.substring(root.length) + remainder];
+    }
+
+    // 特殊なケース（Em, Am, Dm, Bmなど）
+    const specialChordPattern = /^(Em|Am|Dm|Bm)([0-9]|maj|min|dim|aug|sus|add)?/;
+    match = chord.match(specialChordPattern);
     if (match) {
         const root = match[1];
         const remainder = chord.substring(root.length);
         return [root, remainder];
     }
     
+    // 基本的なコードルート（C, C#, Dbなど）
+    const basicRootPattern = /^([A-G][#b]?)(m|M|maj|min|dim|aug|sus|add)?/;
     match = chord.match(basicRootPattern);
     if (match) {
         // ルート音とコードタイプ（mなど）を組み合わせる
-        let root = match[1];
+        const root = match[1];
         const chordType = match[2] || "";
         
         // mが付く場合は特別処理（Em, Amなど）
         if (chordType === 'm') {
             const combinedRoot = root + 'm';
             if (chordColors[combinedRoot]) {
-                return [combinedRoot, chord.substring(root.length + 1)];
+                return [combinedRoot, chord.substring(combinedRoot.length)];
             }
         }
         
@@ -115,44 +137,64 @@ function colorizeChord(chord) {
         return `<span style="display:inline-block; background-color:${bgColor}; color:${textColor}; padding:0 4px; margin:2px; font-size:${fontSize}; line-height:18px; border-radius:2px; text-shadow:${textShadow};">${root}<span style="font-weight:normal;">${mainRemainder}/${bassNote}</span></span>`;
     }
 
+    // ルート音から適切な色を選択
+    let bgColor;
     if (chordColors[root]) {
-        const bgColor = chordColors[root];
-
-        // 背景色の明度を計算し、適切なテキスト色を選択
-        const brightness = getBrightness(bgColor);
-        const textColor = brightness > 128 ? "black" : "white";
-
-        // テキストシャドウを追加して視認性向上
-        const textShadow = textColor === "white" ? 
-            "0px 0px 2px rgba(0,0,0,0.5)" : 
-            "0px 0px 2px rgba(255,255,255,0.5)";
-
-        // コードの長さに基づいてフォントサイズを調整
-        let fontSize = "12px";
-        if (chord.length > 6) {
-            fontSize = "10px";
-        }
-
-        return `<span style="display:inline-block; background-color:${bgColor}; color:${textColor}; padding:0 4px; margin:2px; font-size:${fontSize}; line-height:18px; border-radius:2px; text-shadow:${textShadow};">${root}<span style="font-weight:normal;">${remainder}</span></span>`;
+        bgColor = chordColors[root];
     } else {
-        return `<span style="color:white; margin:0 2px; text-shadow:0px 0px 2px rgba(0,0,0,0.5);">${chord}</span>`;
+        // ルート音がAm7などの場合は、Aの色を使う
+        const baseRoot = root.charAt(0);
+        if (chordColors[baseRoot]) {
+            bgColor = chordColors[baseRoot];
+        } else {
+            return `<span style="color:white; margin:0 2px; text-shadow:0px 0px 2px rgba(0,0,0,0.5);">${chord}</span>`;
+        }
     }
+
+    // 背景色の明度を計算し、適切なテキスト色を選択
+    const brightness = getBrightness(bgColor);
+    const textColor = brightness > 128 ? "black" : "white";
+
+    // テキストシャドウを追加して視認性向上
+    const textShadow = textColor === "white" ? 
+        "0px 0px 2px rgba(0,0,0,0.5)" : 
+        "0px 0px 2px rgba(255,255,255,0.5)";
+
+    // コードの長さに基づいてフォントサイズを調整
+    let fontSize = "12px";
+    if (chord.length > 6) {
+        fontSize = "10px";
+    }
+
+    return `<span style="display:inline-block; background-color:${bgColor}; color:${textColor}; padding:0 4px; margin:2px; font-size:${fontSize}; line-height:18px; border-radius:2px; text-shadow:${textShadow};">${root}<span style="font-weight:normal;">${remainder}</span></span>`;
 }
 
 // コードパターンを認識するための正規表現
-const chordPattern = /\b([A-G][#b]?(?:m|M|maj|min|dim|aug|sus|add|[0-9])*(?:\/[A-G][#b]?(?:m|M|maj|min|dim|aug|sus|add|[0-9])*)?(?:7|9|11|13)?(?:on[A-G])?)\b/g;
+const chordPattern = /\b([A-G][#b]?(?:m|M|maj|min|dim|aug|sus|add|[0-9])*(?:7|9|11|13)?(?:on[A-G][#b]?)?(?:\/[A-G][#b]?(?:m|M|maj|min|dim|aug|sus|add|[0-9])*)?)\b/g;
 
 // 特殊なコードパターン
-const specialChordPattern = /\b(Em|Am|Dm|Bm)([0-9]|maj|min|dim|aug|sus|add)?(?:\/[A-G][#b]?(?:m|M|maj|min|dim|aug|sus|add|[0-9])*)?(?:7|9|11|13)?(?:on[A-G])?\b/g;
+const specialChordPattern = /\b(Am7|Em7|Dm7|Bm7)(?:on[A-G][#b]?)?(?:\/[A-G][#b]?(?:m|M|maj|min|dim|aug|sus|add|[0-9])*)?(?:7|9|11|13)?\b/g;
+
+// 複合的なコードパターン
+const complexChordPattern = /\b([A-G][#b]?m7(?:on[A-G][#b]?)?)\b/g;
 
 // 行内のコードをハイライトする
 function highlightChordsInLine(line) {
-    // まず特殊なコードパターンを処理
-    let processedLine = line.replace(specialChordPattern, (match) => {
+    // まず複合的なコードパターンを処理
+    let processedLine = line.replace(complexChordPattern, (match) => {
         return colorizeChord(match);
     });
     
-    // 次に標準的なコードパターンを処理
+    // 次に特殊なコードパターンを処理
+    processedLine = processedLine.replace(specialChordPattern, (match) => {
+        // すでに処理されたコードはスキップ
+        if (match.startsWith('<span')) {
+            return match;
+        }
+        return colorizeChord(match);
+    });
+    
+    // 最後に標準的なコードパターンを処理
     processedLine = processedLine.replace(chordPattern, (match) => {
         // すでに処理されたコードはスキップ
         if (match.startsWith('<span')) {
@@ -254,4 +296,28 @@ document.addEventListener('DOMContentLoaded', function() {
         
         outputArea.innerHTML = html;
     });
+
+    // サンプルテキストをロード
+    const sampleText = `G / Am 7 / G / Am 7onG
+G A F#m7 Bm 7 Em 7
+小さい頃は 神 さまがいて
+C Am 7 D
+不思議に夢をか なえてくれた
+G A F#m7 Bm 7 Em 7
+やさしい気持で 目覚 めた 朝は
+C Am 7 D Bm 7 B7
+おとなになっても 奇跡はおこる よ
+Em C Em C
+カーテンを開いて 静かな木洩れ陽の
+Am 7 Bm 7 Em
+やさしさに包まれたなら きっと
+C Am 7 Am 7onD
+目につうる全てのことは メッセージ`;
+
+    // テキストエリアにサンプルをセット
+    inputText.value = sampleText;
+
+    // 初期表示
+    const html = processAutoDetectMode(sampleText);
+    outputArea.innerHTML = html;
 });
