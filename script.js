@@ -18,6 +18,10 @@ const chordColors = {
     'Bb': '#c0c0c0',  // A#と同じ
     'B': '#8b4513',   // 茶色
     'Con': '#FFA500', // オンコードの特別処理
+    'Em': '#adff2f',  // Em（Eのバリエーション）
+    'Am': '#9932cc',  // Am（Aのバリエーション）
+    'Dm': '#FFFF00',  // Dm（Dのバリエーション）
+    'Bm': '#8b4513',  // Bm（Bのバリエーション）
 };
 
 // 色の明度を計算する関数
@@ -34,14 +38,35 @@ function getBrightness(hexColor) {
 // コード表記を解析して、ルート音とそれ以外の部分に分ける
 function parseChord(chord) {
     // ルート音を抽出するための正規表現
-    const rootPattern = /^([A-G][#b]?)/;
-    const match = chord.match(rootPattern);
-
+    // 基本的なコードルート（C, C#, Dbなど）
+    const basicRootPattern = /^([A-G][#b]?)(m|M|maj|min|dim|aug|sus|add)?/;
+    // 特殊なケース（Em, Am, Dmなど）
+    const specialPattern = /^(Em|Am|Dm|Bm)([0-9]|maj|min|dim|aug|sus|add)?/;
+    
+    let match = chord.match(specialPattern);
     if (match) {
         const root = match[1];
         const remainder = chord.substring(root.length);
         return [root, remainder];
     }
+    
+    match = chord.match(basicRootPattern);
+    if (match) {
+        // ルート音とコードタイプ（mなど）を組み合わせる
+        let root = match[1];
+        const chordType = match[2] || "";
+        
+        // mが付く場合は特別処理（Em, Amなど）
+        if (chordType === 'm') {
+            const combinedRoot = root + 'm';
+            if (chordColors[combinedRoot]) {
+                return [combinedRoot, chord.substring(root.length + 1)];
+            }
+        }
+        
+        return [root, chord.substring(root.length)];
+    }
+    
     return [chord, ""];
 }
 
@@ -59,6 +84,36 @@ function colorizeChord(chord) {
 
     // 通常のコードの処理
     const [root, remainder] = parseChord(chord);
+
+    // on付きコードの特別処理（例：C/G, G/Am7onG）
+    if (remainder.includes('/')) {
+        const parts = remainder.split('/');
+        const mainRemainder = parts[0];
+        const bassNote = parts[1];
+        
+        // ベース音も含めてコード色を決定
+        let bgColor;
+        if (chordColors[root]) {
+            bgColor = chordColors[root];
+        } else if (root.includes('on') && chordColors['Con']) {
+            bgColor = chordColors['Con'];
+        } else {
+            return `<span style="color:white; margin:0 2px; text-shadow:0px 0px 2px rgba(0,0,0,0.5);">${chord}</span>`;
+        }
+
+        const brightness = getBrightness(bgColor);
+        const textColor = brightness > 128 ? "black" : "white";
+        const textShadow = textColor === "white" ? 
+            "0px 0px 2px rgba(0,0,0,0.5)" : 
+            "0px 0px 2px rgba(255,255,255,0.5)";
+
+        let fontSize = "12px";
+        if (chord.length > 6) {
+            fontSize = "10px";
+        }
+
+        return `<span style="display:inline-block; background-color:${bgColor}; color:${textColor}; padding:0 4px; margin:2px; font-size:${fontSize}; line-height:18px; border-radius:2px; text-shadow:${textShadow};">${root}<span style="font-weight:normal;">${mainRemainder}/${bassNote}</span></span>`;
+    }
 
     if (chordColors[root]) {
         const bgColor = chordColors[root];
@@ -84,7 +139,32 @@ function colorizeChord(chord) {
     }
 }
 
-// コードと歌詞の行を交互に処理
+// コードパターンを認識するための正規表現
+const chordPattern = /\b([A-G][#b]?(?:m|M|maj|min|dim|aug|sus|add|[0-9])*(?:\/[A-G][#b]?(?:m|M|maj|min|dim|aug|sus|add|[0-9])*)?(?:7|9|11|13)?(?:on[A-G])?)\b/g;
+
+// 特殊なコードパターン
+const specialChordPattern = /\b(Em|Am|Dm|Bm)([0-9]|maj|min|dim|aug|sus|add)?(?:\/[A-G][#b]?(?:m|M|maj|min|dim|aug|sus|add|[0-9])*)?(?:7|9|11|13)?(?:on[A-G])?\b/g;
+
+// 行内のコードをハイライトする
+function highlightChordsInLine(line) {
+    // まず特殊なコードパターンを処理
+    let processedLine = line.replace(specialChordPattern, (match) => {
+        return colorizeChord(match);
+    });
+    
+    // 次に標準的なコードパターンを処理
+    processedLine = processedLine.replace(chordPattern, (match) => {
+        // すでに処理されたコードはスキップ
+        if (match.startsWith('<span')) {
+            return match;
+        }
+        return colorizeChord(match);
+    });
+    
+    return processedLine;
+}
+
+// コードと歌詞の行を交互に処理する従来の方法
 function processChordLyricLines(inputText) {
     const lines = inputText.trim().split('\n');
     let htmlOutput = '<div style="font-family:monospace; font-size:13px; white-space:pre; background-color:#1e1e1e; padding:10px; border-radius:5px; color:white;">';
@@ -118,15 +198,60 @@ function processChordLyricLines(inputText) {
     return htmlOutput;
 }
 
+// 各行内のコードを自動検出して処理する新しい方法
+function processAutoDetectMode(inputText) {
+    const lines = inputText.trim().split('\n');
+    let htmlOutput = '<div style="font-family:monospace; font-size:13px; white-space:pre; background-color:#1e1e1e; padding:10px; border-radius:5px; color:white;">';
+
+    for (const line of lines) {
+        // 行内のコードを検出して色付け
+        const processedLine = highlightChordsInLine(line);
+        htmlOutput += `<div style="margin:2px 0;">${processedLine}</div>`;
+    }
+
+    htmlOutput += '</div>';
+    return htmlOutput;
+}
+
 // ボタンクリック時のイベント処理
 document.addEventListener('DOMContentLoaded', function() {
     const processButton = document.getElementById('process-button');
     const inputText = document.getElementById('input-text');
     const outputArea = document.getElementById('output-area');
+    const autoDetectCheckbox = document.createElement('input');
+    
+    // 自動検出モードのチェックボックスを追加
+    autoDetectCheckbox.type = 'checkbox';
+    autoDetectCheckbox.id = 'auto-detect';
+    autoDetectCheckbox.checked = true; // デフォルトでオン
+    
+    const autoDetectLabel = document.createElement('label');
+    autoDetectLabel.htmlFor = 'auto-detect';
+    autoDetectLabel.textContent = 'コード自動検出モード（行内のコードを自動検出）';
+    autoDetectLabel.style.color = '#333';
+    autoDetectLabel.style.marginLeft = '10px';
+    
+    const controlArea = document.createElement('div');
+    controlArea.style.marginTop = '10px';
+    controlArea.style.marginBottom = '10px';
+    controlArea.appendChild(autoDetectCheckbox);
+    controlArea.appendChild(autoDetectLabel);
+    
+    // 入力エリアの後にコントロールエリアを挿入
+    const inputArea = document.querySelector('.input-area');
+    inputArea.appendChild(controlArea);
 
     processButton.addEventListener('click', function() {
         const input = inputText.value;
-        const html = processChordLyricLines(input);
+        let html;
+        
+        // 自動検出モードが有効ならそちらを使う
+        if (autoDetectCheckbox.checked) {
+            html = processAutoDetectMode(input);
+        } else {
+            html = processChordLyricLines(input);
+        }
+        
         outputArea.innerHTML = html;
     });
 });
