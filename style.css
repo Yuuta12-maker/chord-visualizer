@@ -35,6 +35,35 @@ body {
     font-weight: bold;
 }
 
+.usage-info {
+    background-color: #f9f9f9;
+    border-left: 4px solid #c50502;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    border-radius: 0 4px 4px 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.usage-info h3 {
+    margin-top: 0;
+    color: #333;
+    font-size: 18px;
+}
+
+.usage-info p {
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+.usage-info code {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 13px;
+}
+
 .input-area {
     margin-bottom: 20px;
 }
@@ -104,6 +133,18 @@ label {
     
     button#process-button {
         width: 100%;
+    }
+    
+    .usage-info {
+        padding: 8px 12px;
+    }
+    
+    .usage-info h3 {
+        font-size: 16px;
+    }
+    
+    .usage-info p {
+        font-size: 13px;
     }
 }
 
