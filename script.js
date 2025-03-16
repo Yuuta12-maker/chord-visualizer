@@ -332,7 +332,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // サンプルテキストをロード
-    const sampleText = `;
+    const sampleText = `G A F#m7 Bm7 Em7
+小さい頃は 神 さまがいて
+C Am7 D
+不思議に夢をかなえてくれた`;
 
     // テキストエリアにサンプルをセット
     inputText.value = sampleText;
