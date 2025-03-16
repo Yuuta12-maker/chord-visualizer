@@ -22,6 +22,16 @@ const chordColors = {
     'Am': '#9932cc',  // Am（Aのバリエーション）
     'Dm': '#FFFF00',  // Dm（Dのバリエーション）
     'Bm': '#8b4513',  // Bm（Bのバリエーション）
+    'F#m': '#0000CD', // F#m（F#のバリエーション）
+    'Gbm': '#0000CD', // Gbm（Gbのバリエーション）
+    'Gm': '#FFA500',  // Gm（Gのバリエーション）
+    'Abm': '#ff69b4', // Abm（Abのバリエーション）
+    'G#m': '#ff69b4', // G#m（G#のバリエーション）
+    'Bbm': '#c0c0c0', // Bbm（Bbのバリエーション）
+    'A#m': '#c0c0c0', // A#m（A#のバリエーション）
+    'Cm': '#FF0000',  // Cm（Cのバリエーション）
+    'C#m': '#f0e68c', // C#m（C#のバリエーション）
+    'Dbm': '#f0e68c', // Dbm（Dbのバリエーション）
 };
 
 // 色の明度を計算する関数
@@ -63,7 +73,7 @@ function parseChord(chord) {
     }
 
     // 特殊なケース（Em, Am, Dm, Bmなど）
-    const specialChordPattern = /^(Em|Am|Dm|Bm)([0-9]|maj|min|dim|aug|sus|add)?/;
+    const specialChordPattern = /^([A-G][#b]?m)([0-9]|maj|min|dim|aug|sus|add)?/;
     match = chord.match(specialChordPattern);
     if (match) {
         const root = match[1];
@@ -144,7 +154,7 @@ function colorizeChord(chord) {
         bgColor = chordColors[root];
     } else {
         // ルート音がAm7などの場合は、Aの色を使う
-        const baseRoot = root.charAt(0);
+        const baseRoot = root.charAt(0) + (root.charAt(1) === '#' || root.charAt(1) === 'b' ? root.charAt(1) : '');
         if (chordColors[baseRoot]) {
             bgColor = chordColors[baseRoot];
         } else {
@@ -174,7 +184,7 @@ function colorizeChord(chord) {
 const chordPattern = /\b([A-G][#b]?(?:m|M|maj|min|dim|aug|sus|add|[0-9])*(?:7|9|11|13)?(?:on[A-G][#b]?)?(?:\/[A-G][#b]?(?:m|M|maj|min|dim|aug|sus|add|[0-9])*)?)(?:\s+|$)/g;
 
 // 特殊なコードパターン
-const specialChordPattern = /\b(Am7|Em7|Dm7|Bm7)(?:on[A-G][#b]?)?(?:\/[A-G][#b]?(?:m|M|maj|min|dim|aug|sus|add|[0-9])*)?(?:7|9|11|13)?(?:\s+|$)/g;
+const specialChordPattern = /\b(Am7|Em7|Dm7|Bm7|F#m7|Gbm7|Gm7|Abm7|G#m7|Bbm7|A#m7|Cm7|C#m7|Dbm7)(?:on[A-G][#b]?)?(?:\/[A-G][#b]?(?:m|M|maj|min|dim|aug|sus|add|[0-9])*)?(?:7|9|11|13)?(?:\s+|$)/g;
 
 // 複合的なコードパターン
 const complexChordPattern = /\b([A-G][#b]?m7(?:on[A-G][#b]?)?)(?:\s+|$)/g;
